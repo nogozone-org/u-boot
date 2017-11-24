@@ -7,6 +7,10 @@
  * blocks, but devices using something other than that remains to be
  * seen.
  */
+#ifndef CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR
+/* 40KiB for usual 8KiB header + 32KiB Boot0/SPL */
+#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR (80)
+#endif
 #define UBOOT_MMC_MAX_SIZE	(CONFIG_ENV_OFFSET - (CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR * 512))
 
 / {
