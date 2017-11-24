@@ -32,7 +32,7 @@
 # define CONFIG_MACH_TYPE_COMPAT_REV	1
 #endif
 
-#ifdef CONFIG_ARM64
+#if defined(CONFIG_ARM64) && !defined(CONFIG_MACH_SUN50I_H6)
 #define CONFIG_BUILD_TARGET "u-boot.itb"
 #endif
 
@@ -98,6 +98,9 @@
  */
 #define CONFIG_SYS_INIT_RAM_ADDR	0x10000
 #define CONFIG_SYS_INIT_RAM_SIZE	0x08000	/* FIXME: 40 KiB ? */
+#elif defined(CONFIG_MACH_SUN50I_H6)
+#define CONFIG_SYS_INIT_RAM_ADDR	0x20000
+#define CONFIG_SYS_INIT_RAM_SIZE	0x08000
 #else
 #define CONFIG_SYS_INIT_RAM_ADDR	0x0
 #define CONFIG_SYS_INIT_RAM_SIZE	0x8000	/* 32 KiB */

@@ -410,7 +410,8 @@ config ENV_OFFSET
 	hex "Environment Offset"
 	depends on !ENV_IS_IN_UBI
 	depends on !ENV_IS_NOWHERE
-	default 0x88000 if ARCH_SUNXI
+	default 0x88000 if ARCH_SUNXI && !MACH_SUN50I_H6
+	default 0xe0000 if MACH_SUN50I_H6
 	help
 	  Offset from the start of the device (or partition)
 
