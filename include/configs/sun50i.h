@@ -24,6 +24,7 @@
 #else
 #define GICD_BASE		0x3021000
 #define GICC_BASE		0x3022000
+#define CONFIG_GICV2
 #endif
 
 /*
