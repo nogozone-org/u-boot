@@ -14,6 +14,8 @@
 
 #ifdef CONFIG_SUNXI_HIGH_SRAM
 #define SPL_ADDR		0x10000
+#elif defined CONFIG_MACH_SUN50I_H6
+#define SPL_ADDR		0x20000
 #else
 #define SPL_ADDR		0x0
 #endif

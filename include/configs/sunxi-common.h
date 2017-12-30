@@ -199,6 +199,10 @@
 #else
 #define LOW_LEVEL_SRAM_STACK		0x00018000
 #endif /* !CONFIG_ARM64 */
+#elif defined CONFIG_MACH_SUN50I_H6
+#define CONFIG_SPL_TEXT_BASE		0x20060		/* sram start+header */
+#define CONFIG_SPL_MAX_SIZE		0x5fa0		/* 24KB on sun4i/sun7i */
+#define LOW_LEVEL_SRAM_STACK		0x00028000	/* End of sram */
 #else
 #define CONFIG_SPL_TEXT_BASE		0x60		/* sram start+header */
 #define CONFIG_SPL_MAX_SIZE		0x5fa0		/* 24KB on sun4i/sun7i */

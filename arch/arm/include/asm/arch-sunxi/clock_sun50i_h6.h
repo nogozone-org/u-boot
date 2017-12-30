@@ -222,6 +222,14 @@ struct sunxi_ccm_reg {
 	u32 pll_lock_dbg_ctrl;	/* 0xf04 PLL lock debugging control */
 };
 
+/* pll1 bit field */
+#define CCM_PLL1_CTRL_EN		BIT(31)
+#define CCM_PLL1_LOCK_EN		BIT(29)
+#define CCM_PLL1_LOCK			BIT(28)
+#define CCM_PLL1_CLOCK_TIME_2		(2 << 24)
+#define CCM_PLL1_CTRL_P(p)		((p) << 16)
+#define CCM_PLL1_CTRL_N(n)		((n) << 8)
+
 /* pll6 bit field */
 #define CCM_PLL6_CTRL_N_SHIFT		8
 #define CCM_PLL6_CTRL_N_MASK		(0xff << CCM_PLL6_CTRL_N_SHIFT)
@@ -229,6 +237,11 @@ struct sunxi_ccm_reg {
 #define CCM_PLL6_CTRL_DIV1_MASK		(0x1 << CCM_PLL6_CTRL_DIV1_SHIFT)
 #define CCM_PLL6_CTRL_DIV2_SHIFT	1
 #define CCM_PLL6_CTRL_DIV2_MASK		(0x1 << CCM_PLL6_CTRL_DIV2_SHIFT)
+
+/* cpu_axi bit field*/
+#define CCM_CPU_AXI_MUX_MASK		(0x3 << 24)
+#define CCM_CPU_AXI_MUX_OSC24M		(0x0 << 24)
+#define CCM_CPU_AXI_MUX_PLL_CPUX	(0x3 << 24)
 
 /* apb2 bit field */
 #define APB2_CLK_SRC_OSC24M		(0x0 << 24)

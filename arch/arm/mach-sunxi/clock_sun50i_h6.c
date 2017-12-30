@@ -3,6 +3,13 @@
 #include <asm/arch/cpu.h>
 #include <asm/arch/clock.h>
 
+#ifdef CONFIG_SPL_BUILD
+void clock_init_safe(void)
+{
+	clock_set_pll1(408000000);
+}
+#endif
+
 void clock_init_uart(void)
 {
 	struct sunxi_ccm_reg *const ccm =
@@ -22,6 +29,35 @@ void clock_init_uart(void)
 	setbits_le32(&ccm->uart_gate_reset,
 		     1 << (RESET_SHIFT + CONFIG_CONS_INDEX - 1));
 }
+
+#ifdef CONFIG_SPL_BUILD
+void clock_set_pll1(unsigned int clk)
+{
+	struct sunxi_ccm_reg * const ccm =
+		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
+	u32 val;
+
+	/* Do not support clocks < 288MHz as they need factor P */
+	if (clk < 288000000) clk = 288000000;
+
+	/* Switch to 24MHz clock while changing PLL1 */
+	val = readl(&ccm->cpu_axi_cfg);
+	val &= ~CCM_CPU_AXI_MUX_MASK;
+	val |= CCM_CPU_AXI_MUX_OSC24M;
+	writel(val, &ccm->cpu_axi_cfg);
+
+	/* clk = 24*n/p, p is ignored if clock is >288MHz */
+	writel(CCM_PLL1_CTRL_EN | CCM_PLL1_LOCK_EN | CCM_PLL1_CLOCK_TIME_2 |
+	       CCM_PLL1_CTRL_N(clk / 24000000), &ccm->pll1_cfg);
+	while (!(readl(&ccm->pll1_cfg) & CCM_PLL1_LOCK)) {}
+
+	/* Switch CPU to PLL1 */
+	val = readl(&ccm->cpu_axi_cfg);
+	val &= ~CCM_CPU_AXI_MUX_MASK;
+	val |= CCM_CPU_AXI_MUX_PLL_CPUX;
+	writel(val, &ccm->cpu_axi_cfg);
+}
+#endif
 
 unsigned int clock_get_pll6(void)
 {

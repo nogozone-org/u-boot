@@ -40,6 +40,9 @@ config SUNXI_DRAM_DW
 	not have official open-source DRAM initialization code, but can
 	use modified H3 DRAM initialization code.
 
+config MACH_SUN50I_H6
+	bool
+
 if SUNXI_DRAM_DW
 config SUNXI_DRAM_DW_16BIT
 	bool
@@ -188,9 +191,16 @@ config MACH_SUN50I_H5
 	select FIT
 	select SPL_LOAD_FIT
 
-config MACH_SUN50I_H6
+config MACH_SUN50I_H6_64
 	bool "sun50i (Allwinner H6)"
 	select ARM64
+	select MACH_SUN50I_H6
+
+config MACH_SUN50I_H6_32
+	bool "sun50i (Allwinner H6) in 32-bit"
+	select CPU_V7
+	select SUPPORT_SPL
+	select MACH_SUN50I_H6
 
 endchoice
 
