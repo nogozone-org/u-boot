@@ -230,6 +230,14 @@ struct sunxi_ccm_reg {
 #define CCM_PLL1_CTRL_P(p)		((p) << 16)
 #define CCM_PLL1_CTRL_N(n)		((n) << 8)
 
+/* pll5 bit field */
+#define CCM_PLL5_CTRL_EN		BIT(31)
+#define CCM_PLL5_LOCK_EN		BIT(29)
+#define CCM_PLL5_LOCK			BIT(28)
+#define CCM_PLL5_CTRL_N(n)		((n) << 8)
+#define CCM_PLL5_CTRL_DIV1(div1)	((div1) << 0)
+#define CCM_PLL5_CTRL_DIV2(div0)	((div0) << 1)
+
 /* pll6 bit field */
 #define CCM_PLL6_CTRL_N_SHIFT		8
 #define CCM_PLL6_CTRL_N_MASK		(0xff << CCM_PLL6_CTRL_N_SHIFT)
@@ -257,8 +265,25 @@ struct sunxi_ccm_reg {
 #define APB2_CLK_RATE_M(m)		(((m)-1) << 0)
 #define APB2_CLK_RATE_M_MASK            (3 << 0)
 
+/* MBUS clock bit field */
+#define MBUS_ENABLE			BIT(31)
+#define MBUS_RESET			BIT(30)
+#define MBUS_CLK_SRC_MASK		GENMASK(25, 24)
+#define MBUS_CLK_SRC_OSCM24		(0 << 24)
+#define MBUS_CLK_SRC_PLL6X2		(1 << 24)
+#define MBUS_CLK_SRC_PLL5		(2 << 24)
+#define MBUS_CLK_SRC_PLL6X4		(3 << 24)
+#define MBUS_CLK_M(m)			(((m)-1) << 0)
+
 /* Module gate/reset shift*/
 #define RESET_SHIFT			(16)
+
+/* DRAM clock bit field */
+#define DRAM_MOD_RESET			BIT(30)
+#define DRAM_CLK_UPDATE			BIT(27)
+#define DRAM_CLK_SRC_MASK		GENMASK(25, 24)
+#define DRAM_CLK_SRC_PLL5		(0 << 24)
+#define DRAM_CLK_M(m)			(((m)-1) << 0)
 
 /* MMC clock bit field */
 #define CCM_MMC_CTRL_M(x)		((x) - 1)

@@ -866,5 +866,6 @@ config SPL_STACK_R_ADDR
 	default 0x4fe00000 if MACH_SUN8I
 	default 0x2fe00000 if MACH_SUN9I
 	default 0x4fe00000 if MACH_SUN50I
+	default 0x4fe00000 if MACH_SUN50I_H6
 
 endif
