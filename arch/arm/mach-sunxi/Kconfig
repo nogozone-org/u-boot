@@ -191,11 +191,6 @@ config MACH_SUN50I_H5
 	select FIT
 	select SPL_LOAD_FIT
 
-config MACH_SUN50I_H6_64
-	bool "sun50i (Allwinner H6)"
-	select ARM64
-	select MACH_SUN50I_H6
-
 config MACH_SUN50I_H6_32
 	bool "sun50i (Allwinner H6) in 32-bit"
 	select CPU_V7
