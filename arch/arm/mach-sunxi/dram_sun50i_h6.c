@@ -95,9 +95,11 @@ struct dram_para dram_para = {
 };
 /* Entry point to the libdram blob */
 unsigned long init_DRAM(u32, struct dram_para *);
+unsigned long DRAMC_get_dram_size(struct dram_para *);
 
 unsigned long sunxi_dram_init(void)
 {
 	init_DRAM(0, &dram_para);
+	//return DRAMC_get_dram_size(&dram_para);
 	return get_ram_size((long *)PHYS_SDRAM_0, PHYS_SDRAM_0_SIZE);
 }

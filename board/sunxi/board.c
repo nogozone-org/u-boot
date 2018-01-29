@@ -79,6 +79,23 @@ static int soft_i2c_board_init(void) { return 0; }
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#define SUNXI_RPRCM_BASE                    (0x07010000L)
+#define SUNXI_RTWI_BRG_REG					(SUNXI_RPRCM_BASE+0x019c)
+#define SUNXI_RTWI0_RST_BIT					(16)
+#define SUNXI_RTWI0_GATING_BIT				(0)
+#define PL_BASE			(0x07022000)
+
+static void set_cpus_i2c_clock(void)
+{
+	u32 reg_val = readl(SUNXI_RTWI_BRG_REG);
+	reg_val |= 1 << SUNXI_RTWI0_RST_BIT;
+	reg_val |= 1 << SUNXI_RTWI0_GATING_BIT;
+	writel(reg_val, SUNXI_RTWI_BRG_REG);
+
+	sunxi_gpio_set_cfgpin(SUNXI_GPL(0), 3);
+	sunxi_gpio_set_cfgpin(SUNXI_GPL(1), 3);
+}
+
 void i2c_init_board(void)
 {
 #ifdef CONFIG_I2C0_ENABLE
@@ -166,7 +183,13 @@ void i2c_init_board(void)
 #endif
 #endif
 
-#ifdef CONFIG_R_I2C_ENABLE
+	/* TODO: move to appropriate place or fix it */
+
+	set_cpus_i2c_clock();
+	/* select HDMI DDC pins */
+	writel(0x00000222,0x0300B100);
+
+#if 0 //def CONFIG_R_I2C_ENABLE
 	clock_twi_onoff(5, 1);
 	sunxi_gpio_set_cfgpin(SUNXI_GPL(0), SUN8I_H3_GPL_R_TWI);
 	sunxi_gpio_set_cfgpin(SUNXI_GPL(1), SUN8I_H3_GPL_R_TWI);
@@ -499,6 +522,7 @@ int board_mmc_init(bd_t *bis)
 #endif
 
 #ifdef CONFIG_SPL_BUILD
+#include <i2c.h>
 void sunxi_board_init(void)
 {
 	int power_failed = 0;

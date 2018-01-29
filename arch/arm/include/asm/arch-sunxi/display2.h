@@ -28,6 +28,8 @@ struct de_glb {
 	u32 status;
 	u32 dbuff;
 	u32 size;
+	u32 reserved;
+	u32 gate;
 };
 
 /* alpha blending */
@@ -88,6 +90,7 @@ struct de_ui {
 	u32 top_haddr;
 	u32 bot_haddr;
 	u32 ovl_size;
+	u32 res[29];
 };
 
 struct de_csc {
@@ -110,10 +113,22 @@ struct de_csc {
 /*
  * DE register constants.
  */
+#ifdef CONFIG_MACH_SUN50I_H6
+#define SUNXI_DE2_MUX0_BASE			(SUNXI_DE3_BASE + 0x100000)
+#define SUNXI_DE2_MUX1_BASE			(SUNXI_DE3_BASE + 0x200000)
+
+#define SUNXI_DE2_MUX_GLB_REGS			0x00000
+#define SUNXI_DE2_MUX_BLD_REGS			0x00800
+#define SUNXI_DE2_MUX_CHAN_REGS			0x01000
+#define SUNXI_DE2_MUX_CHAN_SZ			0x800
+#define SUNXI_DE2_MUX_VSU_REGS			0x20000
+#define SUNXI_DE2_MUX_GSU1_REGS			0x28000
+#define SUNXI_DE2_MUX_GSU2_REGS			0x30000
+#define SUNXI_DE2_MUX_GSU3_REGS			0x38000
+#else
 #define SUNXI_DE2_MUX0_BASE			(SUNXI_DE2_BASE + 0x100000)
 #define SUNXI_DE2_MUX1_BASE			(SUNXI_DE2_BASE + 0x200000)
 
-#define SUNXI_DE2_MUX_GLB_REGS			0x00000
 #define SUNXI_DE2_MUX_BLD_REGS			0x01000
 #define SUNXI_DE2_MUX_CHAN_REGS			0x02000
 #define SUNXI_DE2_MUX_CHAN_SZ			0x1000
@@ -128,6 +143,7 @@ struct de_csc {
 #define SUNXI_DE2_MUX_ASE_REGS			0xa8000
 #define SUNXI_DE2_MUX_FCC_REGS			0xaa000
 #define SUNXI_DE2_MUX_DCSC_REGS			0xb0000
+#endif
 
 #define SUNXI_DE2_FORMAT_XRGB_8888		4
 #define SUNXI_DE2_FORMAT_RGB_565		10

@@ -230,6 +230,17 @@ struct sunxi_ccm_reg {
 #define CCM_PLL1_CTRL_P(p)		((p) << 16)
 #define CCM_PLL1_CTRL_N(n)		((n) << 8)
 
+/* pll3 bit field */
+#define CCM_PLL3_CTRL_M_SHIFT		1
+#define CCM_PLL3_CTRL_M_MASK		(0x1 << CCM_PLL3_CTRL_M_SHIFT)
+#define CCM_PLL3_CTRL_M(n)		((((n) - 1) & 0x1) << 1)
+#define CCM_PLL3_CTRL_N_SHIFT		8
+#define CCM_PLL3_CTRL_N_MASK		(0xff << CCM_PLL3_CTRL_N_SHIFT)
+#define CCM_PLL3_CTRL_N(n)		((((n) - 1) & 0xff) << 8)
+#define CCM_PLL3_CTRL_LOCK_EN		(0x1 << 29)
+#define CCM_PLL3_CTRL_LOCK		(0x1 << 28)
+#define CCM_PLL3_CTRL_EN		(0x1 << 31)
+
 /* pll5 bit field */
 #define CCM_PLL5_CTRL_EN		BIT(31)
 #define CCM_PLL5_LOCK_EN		BIT(29)
@@ -296,8 +307,38 @@ struct sunxi_ccm_reg {
 #define CCM_MMC_CTRL_OCLK_DLY(a)	((void) (a), 0)
 #define CCM_MMC_CTRL_SCLK_DLY(a)	((void) (a), 0)
 
+#define CCM_HDMI_CTRL_M(n)		((((n) - 1) & 0xf) << 0)
+#define CCM_HDMI_CTRL_PLL_MASK		(3 << 24)
+#define CCM_HDMI_CTRL_PLL3		(0 << 24)
+#define CCM_HDMI_CTRL_PLL_VIDEO1	(1 << 24)
+#define CCM_HDMI_CTRL_PLL_VIDEO1_4X	(2 << 24)
+#define CCM_HDMI_CTRL_GATE		(0x1 << 31)
+
+#define CCM_HDMI_SLOW_CTRL_GATE		(0x1 << 31)
+
+#define CCM_HDMI_BUS_CTRL_GATE		(0x1 << 0)
+#define CCM_HDMI_BUS_CTRL_RST0		(0x1 << 16)
+#define CCM_HDMI_BUS_CTRL_RST1		(0x1 << 17)
+
+#define CCM_LCD_TOP_CTRL_RST		(0x1 << 16)
+#define CCM_LCD_TOP_CTRL_GATE		(0x1 << 0)
+
+#define CCM_LCD0_CTRL_GATE		(0x1 << 31)
+#define CCM_LCD0_CTRL_PLL_MASK		(0x7 << 24)
+#define CCM_LCD0_CTRL_PLL_VIDEO0	(0x0 << 24)
+#define CCM_LCD0_CTRL_PLL_VIDEO0_4X	(0x1 << 24)
+#define CCM_LCD0_CTRL_PLL_VIDEO1	(0x2 << 24)
+#define CCM_LCD0_CTRL_PLL_VIDEO1_4X	(0x3 << 24)
+#define CCM_LCD0_CTRL_M(n)		((((n) - 1) & 0xf) << 0)
+
+#define CCM_TCON_TV_BGR_CTRL_RST	(0x1 << 16)
+#define CCM_TCON_TV_BGR_CTRL_GATE	(0x1 << 0)
+
 #ifndef __ASSEMBLY__
 void clock_set_pll1(unsigned int hz);
+void clock_set_pll3(unsigned int clk);
+void clock_set_pll3_factors(int m, int n);
+unsigned int clock_get_pll3(void);
 unsigned int clock_get_pll6(void);
 #endif
 

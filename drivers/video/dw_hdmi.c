@@ -560,8 +560,8 @@ static int hdmi_read_edid(struct dw_hdmi *hdmi, int block, u8 *buff)
 	u32 n;
 
 	/* set ddc i2c clk which devided from ddc_clk to 100khz */
-	hdmi_write(hdmi, hdmi->i2c_clk_high, HDMI_I2CM_SS_SCL_HCNT_0_ADDR);
-	hdmi_write(hdmi, hdmi->i2c_clk_low, HDMI_I2CM_SS_SCL_LCNT_0_ADDR);
+	//hdmi_write(hdmi, hdmi->i2c_clk_high, HDMI_I2CM_SS_SCL_HCNT_0_ADDR);
+	//hdmi_write(hdmi, hdmi->i2c_clk_low, HDMI_I2CM_SS_SCL_LCNT_0_ADDR);
 	hdmi_mod(hdmi, HDMI_I2CM_DIV, HDMI_I2CM_DIV_FAST_STD_MODE,
 		 HDMI_I2CM_DIV_STD_MODE);
 
