@@ -130,22 +130,91 @@ struct dram_para dram_para = {
 	.ranks   = 2
 };
 
-/* Entry point to the libdram blob */
-unsigned int auto_scan_dram_config(struct dram_para *para);
-unsigned int DRAMC_get_dram_size(struct dram_para *para);
-void set_master_priority(void);
-//void mctl_com_init(struct dram_para *para);
-//void auto_set_timing_para(struct dram_para *para);
-//unsigned int mctl_channel_init(unsigned int ch_index, struct dram_para *para);
+enum {
+	MBUS_PORT_CPU           = 0,
+	MBUS_PORT_GPU           = 1,
+	MBUS_PORT_MAHB          = 2,
+	MBUS_PORT_DMA           = 3,
+	MBUS_PORT_VE            = 4,
+	MBUS_PORT_CE            = 5,
+	MBUS_PORT_TSC0          = 6,
+	MBUS_PORT_NDFC0         = 8,
+	MBUS_PORT_CSI0          = 11,
+	MBUS_PORT_DI0           = 14,
+	MBUS_PORT_DI1           = 15,
+	MBUS_PORT_DE300         = 16,
+	MBUS_PORT_IOMMU         = 25,
+	MBUS_PORT_VE2           = 26,
+	MBUS_PORT_USB3        = 37,
+	MBUS_PORT_PCIE          = 38,
+	MBUS_PORT_VP9           = 39,
+	MBUS_PORT_HDCP2       = 40,
+};
 
-/*static void dump_para(void *regs, int count)
+enum {
+	MBUS_QOS_LOWEST = 0,
+	MBUS_QOS_LOW,
+	MBUS_QOS_HIGH,
+	MBUS_QOS_HIGHEST
+};
+
+inline void mbus_configure_port(u8 port,
+				bool bwlimit,
+				bool priority,
+				u8 qos,         /* MBUS_QOS_LOWEST .. MBUS_QOS_HIGEST */
+				u8 waittime,    /* 0 .. 0xf */
+				u8 acs,         /* 0 .. 0xff */
+				u16 bwl0,       /* 0 .. 0xffff, bandwidth limit in MB/s */
+				u16 bwl1,
+				u16 bwl2)
 {
-	unsigned int *data = (unsigned int *)regs;
+	struct sunxi_mctl_com_reg * const mctl_com =
+			(struct sunxi_mctl_com_reg *)SUNXI_DRAM_COM_BASE;
 
-	for (int i = 0; i < count; i++)
-		printf("%x: 0x%x\n", i*4, readl(&data[i]));
-}*/
+	const u32 cfg0 = ( (bwlimit ? (1 << 0) : 0)
+			   | (priority ? (1 << 1) : 0)
+			   | ((qos & 0x3) << 2)
+			   | ((waittime & 0xf) << 4)
+			   | ((acs & 0xff) << 8)
+			   | (bwl0 << 16) );
+	const u32 cfg1 = ((u32)bwl2 << 16) | (bwl1 & 0xffff);
 
+	debug("MBUS port %d cfg0 %08x cfg1 %08x\n", port, cfg0, cfg1);
+	writel(cfg0, &mctl_com->master[port].cfg0);
+	writel(cfg1, &mctl_com->master[port].cfg1);
+}
+
+#define MBUS_CONF(port, bwlimit, qos, acs, bwl0, bwl1, bwl2)	\
+	mbus_configure_port(MBUS_PORT_ ## port, bwlimit, false, \
+			    MBUS_QOS_ ## qos, 0, acs, bwl0, bwl1, bwl2)
+
+static void mctl_set_master_priority(void)
+{
+	struct sunxi_mctl_com_reg * const mctl_com =
+			(struct sunxi_mctl_com_reg *)SUNXI_DRAM_COM_BASE;
+
+	/* enable bandwidth limit windows and set windows size 1us */
+	writel(399, &mctl_com->tmr);
+	writel(BIT(16), &mctl_com->bwcr);
+
+	MBUS_CONF(  CPU,  true, HIGHEST, 0,  256,  128,  100);
+	MBUS_CONF(  GPU,  true,    HIGH, 0, 1536, 1400,  256);
+	MBUS_CONF( MAHB,  true, HIGHEST, 0,  512,  256,   96);
+	MBUS_CONF(  DMA,  true,    HIGH, 0,  256,  100,   80);
+	MBUS_CONF(   VE,  true,    HIGH, 2, 8192, 5500, 5000);
+	MBUS_CONF(   CE,  true,    HIGH, 2,  100,   64,   32);
+	MBUS_CONF( TSC0,  true,    HIGH, 2,  100,   64,   32);
+	MBUS_CONF(NDFC0,  true,    HIGH, 0,  256,  128,   64);
+	MBUS_CONF( CSI0,  true,    HIGH, 0,  256,  128,  100);
+	MBUS_CONF(  DI0,  true,    HIGH, 0, 1024,  256,   64);
+	MBUS_CONF(DE300,  true, HIGHEST, 6, 8192, 2800, 2400);
+	MBUS_CONF(IOMMU,  true, HIGHEST, 0,  100,   64,   32);
+	MBUS_CONF(  VE2,  true,    HIGH, 2, 8192, 5500, 5000);
+	MBUS_CONF( USB3,  true,    HIGH, 0,  256,  128,   64);
+	MBUS_CONF( PCIE,  true,    HIGH, 2,  100,   64,   32);
+	MBUS_CONF(  VP9,  true,    HIGH, 2, 8192, 5500, 5000);
+	MBUS_CONF(HDCP2,  true,    HIGH, 2,  100,   64,   32);
+}
 
 static u32 mr_lpddr3[12] = {
 	0x00000000, 0x00000043, 0x0000001a, 0x00000001,
@@ -402,31 +471,15 @@ static void mctl_channel_init(int x, struct dram_para *para)
 	setbits_le32(&mctl_phy->zq[0].zqor[0], (CONFIG_DRAM_ZQ >> 8) & 0xff);
 	setbits_le32(&mctl_phy->zq[0].zqor[0], (CONFIG_DRAM_ZQ & 0xf00) - 0x100);
 	setbits_le32(&mctl_phy->zq[0].zqor[0], (CONFIG_DRAM_ZQ & 0xff00) << 4);
-	/*clrbits_le32(&mctl_phy->zq[0].zqor[0], 0xff);
-	setbits_le32(&mctl_phy->zq[0].zqor[0], (CONFIG_DRAM_ZQ & 0xf00) - 0x100);
-	setbits_le32(&mctl_phy->zq[0].zqor[0], (CONFIG_DRAM_ZQ & 0xf00) << 4);
-	clrbits_le32(&mctl_phy->zq[0].zqor[0], 0xf0000);
-	setbits_le32(&mctl_phy->zq[0].zqor[0], (CONFIG_DRAM_ZQ & 0xf000) << 4);*/
 	clrbits_le32(&mctl_phy->zq[1].zqpr[0], 0xfffff);
 	setbits_le32(&mctl_phy->zq[1].zqpr[0], (CONFIG_DRAM_ZQ >> 16) & 0xff);
 	setbits_le32(&mctl_phy->zq[1].zqpr[0], ((CONFIG_DRAM_ZQ >> 8) & 0xf00) - 0x100);
 	setbits_le32(&mctl_phy->zq[1].zqpr[0], (CONFIG_DRAM_ZQ & 0xff0000) >> 4);
-	/*clrbits_le32(&mctl_phy->zq[1].zqpr[0], 0xffff);
-	setbits_le32(&mctl_phy->zq[1].zqpr[0], CONFIG_DRAM_ZQ >> 16);
-	setbits_le32(&mctl_phy->zq[1].zqpr[0], (((CONFIG_DRAM_ZQ >> 8) & 0xf00) - 0x100));
-	setbits_le32(&mctl_phy->zq[1].zqpr[0], (CONFIG_DRAM_ZQ & 0xf0000) >> 4);
-	clrbits_le32(&mctl_phy->zq[1].zqpr[0], 0xf0000);
-	setbits_le32(&mctl_phy->zq[1].zqpr[0], (CONFIG_DRAM_ZQ & 0xf00000) >> 4);*/
 	if (para->type == SUNXI_DRAM_TYPE_LPDDR3) {
 		for (i = 1; i <= 14; i++)
 			writel(0x06060606, &mctl_phy->acbdlr[i]);
 	}
 	/* TODO: non-LPDDR3 types */
-//	mctl_phy_pir_init(0x2f7e2 | BIT(10));	// Failed to initialize
-//	mctl_phy_pir_init(0xf7e2 | BIT(10));	// Failed to initialize
-//	mctl_phy_pir_init(0x5e2 | BIT(10));	// Inaccessible
-//	mctl_phy_pir_init(0x562 | BIT(10));	// Inaccessible
-//	mctl_phy_pir_init(0xf562 | BIT(10));	// Failed to initialize
 	mctl_phy_pir_init(0xf562);
 
 	/* TODO: non-LPDDR3 types */
@@ -456,23 +509,8 @@ static void mctl_channel_init(int x, struct dram_para *para)
 		clrbits_le32(&mctl_phy->dx[i].gcr[3], ~0x3ffff);
 	udelay(10);
 
-	//printf("DRAM PHY PGSR1 = %x\n", readl(&mctl_phy->pgsr[1]));
-	//for (i = 0; i < 4; i++)
-	//	printf("DRAM PHY DX%dRSR0 = %x\n", i, readl(&mctl_phy->dx[i].rsr[0]));
-
 	if (readl(&mctl_phy->pgsr[1]) & 0xff00000) {
 		/* Oops! There's something wrong! */
-		/*dump_0x100(0x4005000);
-		dump_0x100(0x4005100);
-		dump_0x100(0x4005200);
-		dump_0x100(0x4005300);
-		dump_0x100(0x4005400);
-		dump_0x100(0x4005500);
-		dump_0x100(0x4005600);
-		dump_0x100(0x4005700);
-		dump_0x100(0x4005800);
-		dump_0x100(0x4005900);
-		dump_0x100(0x4005a00);*/
 		panic("Error while initializing DRAM PHY!\n");
 	}
 
@@ -630,7 +668,7 @@ unsigned long sunxi_dram_init(void)
 	/* TODO: correctly get size */
 	size = 2048;//DRAMC_get_dram_size(&dram_para);
 	clrsetbits_le32(&mctl_com->cr, 0xf0, size & 0xf0);
-	//set_master_priority();
+	mctl_set_master_priority();
 
 	return get_ram_size((long *)PHYS_SDRAM_0, PHYS_SDRAM_0_SIZE);
 }

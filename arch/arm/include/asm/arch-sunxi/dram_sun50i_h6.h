@@ -39,8 +39,8 @@ struct sunxi_mctl_com_reg {
 	 * size of this struct array is set to 41 (0x29) now.
 	 */
 	struct {
-		u32 unk_0x0;		/* 0x0 */
-		u32 unk_0x4;		/* 0x4 */
+		u32 cfg0;		/* 0x0 */
+		u32 cfg1;		/* 0x4 */
 		u8 reserved_0x8[8];	/* 0x8 */
 	} master[41];		/* 0x210 + index * 0x10 */
 };
