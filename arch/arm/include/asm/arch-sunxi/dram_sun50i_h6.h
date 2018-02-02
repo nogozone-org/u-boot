@@ -253,7 +253,7 @@ struct sunxi_mctl_phy_reg {
 		u32 rsr[4];		/* 0xd0 */
 		u32 gsr[4];		/* 0xe0 */
 		u8 reserved_0xf0[16];	/* 0xf0 */
-	} dx[4];		/* 0x700, 0x800, 0x900, 0xa00 */
+	} dx[5];		/* 0x700, 0x800, 0x900, 0xa00 */
 };
 check_member(sunxi_mctl_phy_reg, dx[3].reserved_0xf0, 0xaf0);
 
